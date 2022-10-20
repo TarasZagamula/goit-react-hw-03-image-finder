@@ -1,89 +1,104 @@
 import React, { Component } from 'react';
-import { nanoid } from 'nanoid';
-import { ContactList } from './Contact-list/ContactList';
-import { Box } from '../components/Box/box.styled';
-import PhoneboockForm from './Form/phoneboock-form';
-import SearchInput from './Search-input/SearchInput';
-import initialnumbers from '../data/initial-numbers.json'
+import { TextButton } from './Button/TextButton/TextButton';
+import SearchBar from './Searchbar/Searchbar';
+import ImageGallery from './ImageGallery/ImageGallery';
+import Modal from './Modal/Modal';
+import Loader from './Loader/Loader';
 
 class App extends Component {
   state = {
-    numberList: initialnumbers,
-    filter: '',
+    searchData: [],
+    searchValue: null,
+    page: 1,
+    showModal: null,
+    showLoader: false,
   };
-
-  componentDidMount() {
-    const numberList = localStorage.getItem('numberList');
-    numberList && this.setState({ numberList: JSON.parse(numberList) });
-  }
 
   componentDidUpdate(prevProps, prevState) {
-    if (this.state.numberList === prevState.numberList) {
-      return;
+    const { searchValue, page } = this.state;
+    const prevValue = prevState.searchValue;
+    if (
+      prevState.searchValue !== this.state.searchValue ||
+      prevState.page !== this.state.page
+    ) { 
+      this.setState({ showLoader: true });
+      return fetch(
+        `https://pixabay.com/api/?key=29344030-4477c2161924855e32deae646&q=${searchValue}&image_type=photo&orientation=horizontal&page=${page}&per_page=12`
+      )
+        .then(res => res.json())
+        .then(data => {
+          console.log(data)
+          this.setState((prevState) => {
+            if (prevValue !== searchValue) {
+              return { searchData: data.hits, showLoader: false };
+            }
+            return {
+              searchData: [...prevState.searchData, ...data.hits],
+              showLoader: false,
+            };
+          });
+        });
     }
-    localStorage.setItem('numberList', JSON.stringify(this.state.numberList));
+    return;
   }
 
-  deleteItem = id => {
-    this.setState(prevState => ({
-      numberList: prevState.numberList.filter(num => num.id !== id),
-    }));
-  };
-
-  filterSet = data => {
+  galleryDataSet = data => {
     this.setState({
-      filter: data,
+      galleryData: data,
     });
   };
 
-  dataSet = data => {
-    const initState = this.state.numberList;
-    const userId = nanoid();
-    const user = {
-      id: userId,
-      name: data.name,
-      tel: data.tel,
-    };
-
-    if (initState.find(i => i.name === user.name || i.tel === user.tel)) {
-      return alert(`this name or number is already used`);
-    }
-    return this.setState(prevState => ({
-      numberList: [user, ...prevState.numberList],
+  loadMore = () => {
+    this.setState(prevState => ({
+      page: prevState.page + 1,
     }));
   };
 
-  render() {
-    const numberList = this.state.numberList;
-    const filterValue = this.state.filter.toLowerCase();
-    const filtredList = numberList.filter(num =>
-      num.name.toLowerCase().includes(filterValue)
-    );
+  searchSet = data => {
+    this.setState({
+      searchValue: data.search,
+      page: 1,
+    });
+  };
 
+  resetShowModal = () => {
+    this.setState({
+      showModal: null,
+    });
+  };
+
+  togleleLoader = () => {
+    this.seatStaete(prevState => ({
+      showLoader: !prevState.showLoader,
+    }));
+  };
+
+  modalImgSet = selectedImg => {
+    this.setState({
+      showModal: selectedImg,
+    });
+  };
+
+  render() {
+    const { searchData, showModal, showLoader } = this.state;
     return (
       <div
         style={{
-          height: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          fontSize: 40,
-          color: '#010101',
+          display: 'grid',
+          gridTemplateColumns: '1fr',
+          gridGap: '16px',
+          paddingBottom: '24px',
         }}
       >
-        <Box>
-          <PhoneboockForm onSubmit={this.dataSet} />
-        </Box>
-        {this.state.numberList.length > 0 && (
-          <Box>
-            <SearchInput onSearch={this.filterSet} />
-            <ContactList
-              numberList={filtredList}
-              onDeleteItem={this.deleteItem}
-            />
-          </Box>
+        <SearchBar onSubmit={this.searchSet} />
+        <ImageGallery searchData={searchData} onItemClick={this.modalImgSet} />
+        {searchData.length > 0 && (
+          <TextButton onClick={this.loadMore} children="load more" />
         )}
+        {showModal && (
+          <Modal closeModal={this.resetShowModal} data={showModal} />
+        )}
+        {showLoader && <Loader />}
       </div>
     );
   }

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { TextButtonStyled } from './TextButton.styled';
 
 export const TextButton = ({ onClick, children }) => {
@@ -6,4 +7,9 @@ export const TextButton = ({ onClick, children }) => {
       {children}
     </TextButtonStyled>
   );
+};
+
+TextButton.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  children: PropTypes.string.isRequired,
 };

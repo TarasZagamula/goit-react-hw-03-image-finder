@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { ModalBody, ModalOverlay } from './Modal.styled';
 
 class Modal extends Component {
@@ -7,20 +8,20 @@ class Modal extends Component {
   }
 
   componentWillUnmount() {
-    window.removeEventListener(`keydown`, this.keyDown); 
+    window.removeEventListener(`keydown`, this.keyDown);
   }
 
   keyDown = e => {
     if (e.code === 'Escape') {
       this.props.closeModal();
     }
-  }
+  };
 
   backdropClick = e => {
     if (e.target === e.currentTarget) {
-        this.props.closeModal();
+      this.props.closeModal();
     }
-  }
+  };
 
   render() {
     const { data } = this.props;
@@ -33,5 +34,10 @@ class Modal extends Component {
     );
   }
 }
+
+Modal.propTypes = {
+  closeModal: PropTypes.func.isRequired,
+  data: PropTypes.object.isRequired,
+};
 
 export default Modal;

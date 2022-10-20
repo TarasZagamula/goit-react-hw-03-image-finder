@@ -20,15 +20,14 @@ class App extends Component {
     if (
       prevState.searchValue !== this.state.searchValue ||
       prevState.page !== this.state.page
-    ) { 
+    ) {
       this.setState({ showLoader: true });
       return fetch(
         `https://pixabay.com/api/?key=29344030-4477c2161924855e32deae646&q=${searchValue}&image_type=photo&orientation=horizontal&page=${page}&per_page=12`
       )
         .then(res => res.json())
         .then(data => {
-          console.log(data)
-          this.setState((prevState) => {
+          this.setState(prevState => {
             if (prevValue !== searchValue) {
               return { searchData: data.hits, showLoader: false };
             }
